@@ -68,8 +68,125 @@ export const sendWelcomeEmail = async (userEmail, name) => {
 </div>`;
   await sendEmail(userEmail, subject, html); // ← call the generic sender
 };
+export const sendTransactionEmail = async (
+  userEmail,
+  name,
+  amount,
+  toAccount,
+) => {
+  const subject = "Transaction Receipt: Transfer Successful ✅";
 
-export function getOTPHtml(name, email, otp) {
+  // Clean fallback for plain-text email clients
+  const text = `Hello ${name},\n\nYour transaction was successful.\n\nAmount: $${amount}\nTransferred To: ${toAccount}\nStatus: Completed\n\nThank you for using our services.\n\nBest regards,\nThe Backend Ledger Team`;
+
+  // Sleek, modern FinTech receipt for HTML email clients
+  const html = `
+    <div style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+      <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+        
+        <!-- Header -->
+        <div style="background-color: #10b981; padding: 20px; text-align: center;">
+          <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600;">Transfer Successful</h2>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; color: #4b5563; margin-top: 0;">Hello <strong>${name}</strong>,</p>
+          <p style="font-size: 15px; color: #6b7280; line-height: 1.6;">Your recent transaction has been processed successfully. Here are the details of your transfer:</p>
+          
+          <!-- Receipt Box -->
+          <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 0.05em;">Amount Sent</p>
+            <p style="font-size: 32px; font-weight: 700; color: #10b981; margin: 0;">$${amount}</p>
+          </div>
+          
+          <!-- Transaction Details -->
+          <table style="width: 100%; font-size: 14px; color: #4b5563; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280;">To Account</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-family: monospace; font-weight: 600;">${toAccount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280;">Status</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #10b981;">Completed</td>
+            </tr>
+          </table>
+          
+          <p style="font-size: 14px; color: #6b7280; margin-top: 30px; line-height: 1.5;">If you did not authorize this transaction, please contact our support team immediately.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="font-size: 13px; color: #9ca3af; margin: 0;">&copy; The Backend Ledger Team</p>
+        </div>
+        
+      </div>
+    </div>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+};
+
+export const sendTransactionFailureEmail = async (
+  userEmail,
+  name,
+  amount,
+  toAccount,
+) => {
+  const subject = "Transaction Alert: Transfer Failed ⚠️";
+
+  // Clean fallback for plain-text email clients
+  const text = `Hello ${name},\n\nWe regret to inform you that your recent transaction could not be completed.\n\nAttempted Amount: $${amount}\nTo Account: ${toAccount}\nStatus: Failed\n\nPlease note that no funds have been deducted from your account. Please check your balance or try again later.\n\nBest regards,\nThe Backend Ledger Team`;
+
+  // Sleek, modern FinTech alert for HTML email clients
+  const html = `
+    <div style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+      <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+        
+        <!-- Header -->
+        <div style="background-color: #ef4444; padding: 20px; text-align: center;">
+          <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600;">Transfer Failed</h2>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; color: #4b5563; margin-top: 0;">Hello <strong>${name}</strong>,</p>
+          <p style="font-size: 15px; color: #6b7280; line-height: 1.6;">We regret to inform you that your recent transaction could not be processed. <strong>No funds have been deducted from your account.</strong></p>
+          
+          <!-- Failed Transaction Box -->
+          <div style="background-color: #fef2f2; border-radius: 8px; border: 1px solid #fca5a5; padding: 20px; margin: 25px 0; text-align: center;">
+            <p style="font-size: 14px; color: #b91c1c; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 0.05em;">Attempted Transfer</p>
+            <p style="font-size: 32px; font-weight: 700; color: #ef4444; margin: 0; text-decoration: line-through;">$${amount}</p>
+          </div>
+          
+          <!-- Transaction Details -->
+          <table style="width: 100%; font-size: 14px; color: #4b5563; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280;">To Account</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-family: monospace; font-weight: 600;">${toAccount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280;">Status</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #ef4444;">Failed</td>
+            </tr>
+          </table>
+          
+          <p style="font-size: 14px; color: #6b7280; margin-top: 30px; line-height: 1.5;">Please verify your account details or check your current balance before trying again. If you need assistance, contact our support team.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="font-size: 13px; color: #9ca3af; margin: 0;">&copy; The Backend Ledger Team</p>
+        </div>
+        
+      </div>
+    </div>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+};
+
+const getOTPHtml = (name, email, otp) => {
   const digits = otp.toString().split("");
 
   const digitBoxes = digits

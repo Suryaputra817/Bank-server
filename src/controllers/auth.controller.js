@@ -1,11 +1,16 @@
 import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
-import { sendEmail,sendOTPEmail,sendWelcomeEmail } from "../services/email.service.js";
+import {
+  sendEmail,
+  sendOTPEmail,
+  sendWelcomeEmail,
+} from "../services/email.service.js";
 import { generateOTP } from "../utils/otp.util.js";
 import OTP from "../model/otp.model.js";
 import crypto from "crypto";
+import TokenBlacklistModel from "../model/blacklist.model.js";
 
-export async function userRegister(req, res) {
+export async function userRegisterController(req, res) {
   const { email, password, name } = req.body;
   const isEmailExists = await userModel.findOne({
     email,
@@ -22,16 +27,16 @@ export async function userRegister(req, res) {
     name,
     verified: false,
   });
-const otp = generateOTP();
-const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-await OTP.create({
-  email,
-  user: newUser._id.toString(),
-  otpHash,
-});
-await sendOTPEmail(newUser.email, newUser.name, otp).catch((err) =>
-  console.error("Failed to send OTP email:", err),
-);
+  const otp = generateOTP();
+  const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+  await OTP.create({
+    email,
+    user: newUser._id.toString(),
+    otpHash,
+  });
+  await sendOTPEmail(newUser.email, newUser.name, otp).catch((err) =>
+    console.error("Failed to send OTP email:", err),
+  );
 
   const token = jwt.sign(
     {
@@ -54,10 +59,9 @@ await sendOTPEmail(newUser.email, newUser.name, otp).catch((err) =>
     },
     token,
   });
-  
 }
 
-export async function userLogin(req, res) {
+export async function userLoginController(req, res) {
   const { email, password } = req.body;
   const user = await userModel.findOne({ email }).select("+password");
   if (!user) {
@@ -92,7 +96,7 @@ export async function userLogin(req, res) {
   });
 }
 
-export async function verifyEmail(req, res) {
+export async function verifyEmailController(req, res) {
   const { email, otp } = req.body;
   const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
   const otpRecord = await OTP.findOne({
@@ -126,5 +130,19 @@ export async function verifyEmail(req, res) {
       name: user.name,
       verified: user.verified,
     },
+  });
+}
+
+export async function userLogoutController(req, res) {
+  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(400).json({
+      message: "Token is missing or already logged out",
+    });
+  }
+  res.clearCookie("token");
+  await TokenBlacklistModel.create({ token });
+  return res.status(200).json({
+    message: "Logout successful",
   });
 }
